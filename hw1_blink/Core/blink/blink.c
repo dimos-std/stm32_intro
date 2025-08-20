@@ -8,7 +8,7 @@
 #include "blink.h"
 
 
-void blink_led_om_board()
+void blink_led_on_board()
 {
 	static uint32_t pin_state = GPIO_PIN_RESET;
 

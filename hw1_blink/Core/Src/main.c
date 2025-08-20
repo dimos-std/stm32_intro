@@ -95,7 +95,7 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    blink_led_om_board();
+    blink_led_on_board();
 	  /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */

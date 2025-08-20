@@ -10,7 +10,7 @@
 
 #include "main.h"
 
-void blink_led_om_board(void);
+void blink_led_on_board(void);
 
 
 #endif /* BLINK_H_ */
