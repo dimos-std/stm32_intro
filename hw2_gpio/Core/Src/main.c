@@ -21,7 +21,9 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-#include "../blink/blink.h"
+#include "button.h"
+#include "display_7seg.h"
+#include "led.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -31,7 +33,8 @@
 
 /* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
-
+#define MAX_COUNT_VAL	999
+#define UPDATE_PERIOD	5
 /* USER CODE END PD */
 
 /* Private macro -------------------------------------------------------------*/
@@ -42,12 +45,12 @@
 /* Private variables ---------------------------------------------------------*/
 
 /* USER CODE BEGIN PV */
-
+extern uint8_t btn_flag;
+volatile uint32_t count = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
 void SystemClock_Config(void);
-static void MX_GPIO_Init(void);
 /* USER CODE BEGIN PFP */
 
 /* USER CODE END PFP */
@@ -65,7 +68,25 @@ int main(void)
 {
 
   /* USER CODE BEGIN 1 */
-
+	display_7seg_t display = {
+		.digit = {
+			{DIGIT1_GPIO_Port, DIGIT1_Pin},
+			{DIGIT2_GPIO_Port, DIGIT2_Pin},
+			{DIGIT3_GPIO_Port, DIGIT3_Pin}
+		},
+		.segment = {
+			{SEG_A_GPIO_Port, SEG_A_Pin},
+			{SEG_B_GPIO_Port, SEG_B_Pin},
+			{SEG_C_GPIO_Port, SEG_C_Pin},
+			{SEG_D_GPIO_Port, SEG_D_Pin},
+			{SEG_E_GPIO_Port, SEG_E_Pin},
+			{SEG_F_GPIO_Port, SEG_F_Pin},
+			{SEG_G_GPIO_Port, SEG_G_Pin},
+			{SEG_DP_GPIO_Port, SEG_DP_Pin}
+		}
+	};
+	uint32_t curr_time = 0;
+	uint32_t last_update = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -85,8 +106,16 @@ int main(void)
   /* USER CODE END SysInit */
 
   /* Initialize all configured peripherals */
-  MX_GPIO_Init();
   /* USER CODE BEGIN 2 */
+
+
+
+	init_led(LED_ON_BOARD_GPIO_Port, LED_ON_BOARD_Pin);
+	init_btn(BTN_ON_BOARD_GPIO_Port, BTN_ON_BOARD_Pin);
+	display_7seg_init(&display);
+
+
+
 
   /* USER CODE END 2 */
 
@@ -94,8 +123,23 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-    blink_led_om_board();
-	  /* USER CODE END WHILE */
+	curr_time = HAL_GetTick();
+	if(curr_time - last_update >= UPDATE_PERIOD)
+	{
+		last_update = curr_time;
+		display_7seg_show(&display);
+	}
+	if(btn_flag)
+	{
+		HAL_GPIO_TogglePin(LED_ON_BOARD_GPIO_Port, LED_ON_BOARD_Pin);
+		btn_flag = 0;
+		if (count < MAX_COUNT_VAL)
+			count++;
+		else
+			count = 0;
+		display_7seg_update(&display, count);
+	}
+    /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
   }
@@ -140,37 +184,6 @@ void SystemClock_Config(void)
   {
     Error_Handler();
   }
-}
-
-/**
-  * @brief GPIO Initialization Function
-  * @param None
-  * @retval None
-  */
-static void MX_GPIO_Init(void)
-{
-  GPIO_InitTypeDef GPIO_InitStruct = {0};
-  /* USER CODE BEGIN MX_GPIO_Init_1 */
-
-  /* USER CODE END MX_GPIO_Init_1 */
-
-  /* GPIO Ports Clock Enable */
-  __HAL_RCC_GPIOC_CLK_ENABLE();
-  __HAL_RCC_GPIOA_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LED_ON_BOARD_GPIO_Port, LED_ON_BOARD_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pin : LED_ON_BOARD_Pin */
-  GPIO_InitStruct.Pin = LED_ON_BOARD_Pin;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LED_ON_BOARD_GPIO_Port, &GPIO_InitStruct);
-
-  /* USER CODE BEGIN MX_GPIO_Init_2 */
-
-  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */

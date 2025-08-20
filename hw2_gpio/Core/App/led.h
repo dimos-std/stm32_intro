@@ -5,12 +5,13 @@
  *      Author: master
  */
 
-#ifndef BLINK_H_
-#define BLINK_H_
+#ifndef LED_H_
+#define LED_H_
 
 #include "main.h"
 
-void blink_led_om_board(void);
+
+void init_led(GPIO_TypeDef*, uint16_t);
 
 
-#endif /* BLINK_H_ */
+#endif /* LED_H_ */
