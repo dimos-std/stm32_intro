@@ -16,13 +16,28 @@ void init_btn(GPIO_TypeDef* port, uint16_t pin)
 	if(!pin)
 		Error_Handler();
 
+
+/**
+ * Да, порты A, B, C есть всегда, но это относится не ко всем портам,
+ * так что лучше предусмотреть во имя переносимости
+ */
+#if defined GPIOA
 	if(port == GPIOA)
 		__HAL_RCC_GPIOA_CLK_ENABLE();
-	else if(port == GPIOB)
+	else
+#endif
+#if defined GPIOA
+	if(port == GPIOB)
 		__HAL_RCC_GPIOB_CLK_ENABLE();
-	else if(port == GPIOC)
+	else
+#endif
+#if defined GPIOA
+	if(port == GPIOC)
 		__HAL_RCC_GPIOC_CLK_ENABLE();
-	else Error_Handler();
+	else
+#endif
+// Ну, не смогла; для читаемости можно оформить в switch, но лень
+	Error_Handler();
 
 	GPIO_InitStruct.Pin = pin;
 	GPIO_InitStruct.Mode = GPIO_MODE_IT_RISING;
