@@ -44,6 +44,8 @@ SPI_HandleTypeDef hspi1;
 SPI_HandleTypeDef hspi3;
 
 /* USER CODE BEGIN PV */
+volatile uint8_t rx_count = 0;
+volatile uint8_t tx_count = 0;
 uint8_t spi1_tx_buf[SPI_BUF_SIZE] = "Hello SPI3";
 uint8_t spi3_rx_buf[SPI_BUF_SIZE] = {0};
 /* USER CODE END PV */
@@ -54,7 +56,8 @@ static void MX_GPIO_Init(void);
 static void MX_SPI1_Init(void);
 static void MX_SPI3_Init(void);
 /* USER CODE BEGIN PFP */
-
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *);
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -94,8 +97,8 @@ int main(void)
   MX_SPI1_Init();
   MX_SPI3_Init();
   /* USER CODE BEGIN 2 */
-HAL_SPI_Receive_IT(&hspi3, spi3_rx_buf, SPI_BUF_SIZE);
-HAL_SPI_Transmit_IT(&hspi1, spi1_tx_buf, SPI_BUF_SIZE);
+HAL_SPI_Receive_IT(&hspi3, spi3_rx_buf, strlen((char*)spi1_tx_buf));
+HAL_SPI_Transmit_IT(&hspi1, spi1_tx_buf, strlen((char*)spi1_tx_buf));
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -171,8 +174,8 @@ static void MX_SPI1_Init(void)
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi1.Init.NSS = SPI_NSS_HARD_OUTPUT;
-  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_2;
+  hspi1.Init.NSS = SPI_NSS_SOFT;
+  hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_16;
   hspi1.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi1.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi1.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -211,7 +214,7 @@ static void MX_SPI3_Init(void)
   hspi3.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi3.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi3.Init.CLKPhase = SPI_PHASE_1EDGE;
-  hspi3.Init.NSS = SPI_NSS_HARD_INPUT;
+  hspi3.Init.NSS = SPI_NSS_SOFT;
   hspi3.Init.FirstBit = SPI_FIRSTBIT_MSB;
   hspi3.Init.TIMode = SPI_TIMODE_DISABLE;
   hspi3.Init.CRCCalculation = SPI_CRCCALCULATION_DISABLE;
@@ -250,7 +253,14 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
-
+void HAL_SPI_RxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	rx_count++;
+}
+void HAL_SPI_TxCpltCallback(SPI_HandleTypeDef *hspi)
+{
+	tx_count++;
+}
 /* USER CODE END 4 */
 
 /**
