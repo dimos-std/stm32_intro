@@ -9,20 +9,21 @@
 #define LIGHT_CTRL_H_
 
 #include "stm32g4xx_hal.h"
-//
 
 typedef struct {
         GPIO_TypeDef *port;
         uint16_t pin;
         uint8_t state;
     } led_t;
+
 typedef struct {
     ADC_HandleTypeDef *hadc;
-    uint32_t AWDy;
+    uint32_t AWDx;
     uint16_t value;
     uint16_t high_threshold;
     uint16_t low_threshold;
 }sensor_t;
+
 typedef struct{
     sensor_t sensor;
     led_t led;

@@ -78,7 +78,7 @@ int main(void)
   light_t light = {
       .sensor = {
           .hadc = &hadc1,
-          .AWDy = ADC_ANALOGWATCHDOG_1,
+          .AWDx = ADC_ANALOGWATCHDOG_1,
           .high_threshold = 0,
           .low_threshold = 0,
           .value = 0
@@ -89,7 +89,7 @@ int main(void)
           .state = 0
       },
       .threshold = 0,
-      .hyster = 20
+      .hyster = 40
   };
   volatile uint32_t ts = 0;
 
@@ -136,7 +136,7 @@ int main(void)
 
   while (1)
   {
-    if(HAL_GetTick()- ts >= 300)
+    if(HAL_GetTick()- ts >= TIMESTAMP)
     {
       ts = HAL_GetTick();
       if(light_value_flag)

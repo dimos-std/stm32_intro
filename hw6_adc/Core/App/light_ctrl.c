@@ -14,7 +14,9 @@ void light_toggle(light_t *light, uint16_t new_value)
 {
   if(light == NULL)
     return;
+
   light->sensor.value = new_value;
+
   if(!(light->led.state) && ((light->sensor.value) <= (light->sensor.low_threshold)))
   {
     HAL_GPIO_WritePin(light -> led.port, light -> led.pin, GPIO_PIN_SET);
@@ -29,20 +31,46 @@ void light_toggle(light_t *light, uint16_t new_value)
 
 void light_update_threshold(light_t *light, uint16_t new_threshold)
 {
+
   if(light == NULL)
       return;
-  if(light->sensor.value == new_threshold)
+  if(light->threshold == new_threshold)
     return;
+
+  uint32_t tmp_awd_high_threshold_shifted = 0;
+  uint32_t tmp_awd_low_threshold_shifted = 0;
   uint32_t ADC_MAX_VALUE =  0x0FFFU >> (light->sensor.hadc->Init.Resolution >> 2);
+
   light->threshold = new_threshold;
 
-  light->sensor.low_threshold = light->threshold - light->hyster / 2;
-  light->sensor.high_threshold = light->threshold + light->hyster / 2;
+  if(new_threshold + light->hyster / 2 >= ADC_MAX_VALUE)
+  {
+    light->sensor.high_threshold = ADC_MAX_VALUE;
+    light->sensor.low_threshold = ADC_MAX_VALUE - light->hyster;
+  } else if (new_threshold - light->hyster / 2 >= ADC_MAX_VALUE)
+  {
+    light->sensor.high_threshold = light->hyster;
+    light->sensor.low_threshold = 0;
+  }
+  else
+  {
+    light->sensor.high_threshold = light->threshold + light->hyster / 2;
+    light->sensor.low_threshold = light->threshold - light->hyster / 2;
+  }
 
-  light->sensor.low_threshold = (light->sensor.low_threshold > ADC_MAX_VALUE) ? 0 : light->sensor.low_threshold;
-  light->sensor.high_threshold  = (light->sensor.high_threshold > ADC_MAX_VALUE) ? 0 : light->sensor.high_threshold ;
 
-  LL_ADC_SetAnalogWDThresholds(light->sensor.hadc->Instance, ADC_ANALOGWATCHDOG_1, light->sensor.high_threshold , light->sensor.low_threshold);
+  if (light->sensor.AWDx == ADC_ANALOGWATCHDOG_1)
+  {
+    tmp_awd_high_threshold_shifted = ADC_AWD1THRESHOLD_SHIFT_RESOLUTION(light->sensor.hadc, light->sensor.high_threshold);
+    tmp_awd_low_threshold_shifted  = ADC_AWD1THRESHOLD_SHIFT_RESOLUTION(light->sensor.hadc, light->sensor.low_threshold);
+  }
+  else
+  {
+    tmp_awd_high_threshold_shifted = ADC_AWD23THRESHOLD_SHIFT_RESOLUTION(light->sensor.hadc, light->sensor.high_threshold);
+    tmp_awd_low_threshold_shifted  = ADC_AWD23THRESHOLD_SHIFT_RESOLUTION(light->sensor.hadc, light->sensor.low_threshold);
+  }
+  LL_ADC_ConfigAnalogWDThresholds(light->sensor.hadc->Instance, light->sensor.AWDx, tmp_awd_high_threshold_shifted,
+                                  tmp_awd_low_threshold_shifted);
 }
 
 void light_send_state(light_t *light)
